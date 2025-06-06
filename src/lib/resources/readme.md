@@ -53,15 +53,11 @@ In the MVC design pattern the Model is responsible for the data access layer. In
 
 ```js
 interface UserState {
-  all: (options?: any) => Promise<User>;
-  read: (id: ID, options?: any) => Promise<User>;
-  create: (data: Partial<User> | FormData, options?: any) => Promise<User>;
-  update: (
-    id: ID,
-    data: Partial<User> | FormData,
-    options?: any
-  ) => Promise<User>;
-  destroy: (id: ID, options?: any) => Promise<any>;
+    all: (options?: any) => Promise<User>;
+    read: (id: ID, options?:any) => Promise<User>;
+    create: (data: Partial<User> | FormData, options?: any) => Promise<User>;
+    update: (id: ID, data: Partial<User> | FormData, options?: any) => Promise<User>;
+    destroy: (id: ID, options?: any) => Promise<any>;
 }
 ```
 
@@ -71,11 +67,11 @@ If we have a second model. We are going to define the same operations for that m
 
 ```js
 interface ResourceState<T> {
-  all: (options?: any) => Promise<T>;
-  read: (id: ID, options?: any) => Promise<T>;
-  create: (data: Partial<T> | FormData, options?: any) => Promise<T>;
-  update: (id: ID, data: Partial<T> | FormData, options?: any) => Promise<T>;
-  destroy: (id: ID, options?: any) => Promise<any>;
+    all: (options?: any) => Promise<T>;
+    read: (id: ID, options?:any) => Promise<T>;
+    create: (data: Partial<T> | FormData, options?: any) => Promise<T>;
+    update: (id: ID, data: Partial<T> | FormData, options?: any) => Promise<T>;
+    destroy: (id: ID, options?: any) => Promise<any>;
 }
 // Now the UserState extends the resource State
 interface UserState extends ResourceState<User> {}
@@ -95,12 +91,12 @@ Now that we can get the resources from the API. We need to store them and organi
 
 ```js
 interface ResourceState<T> {
-  //...
-  pagination: Pagination;
-  items: T[];
-  current?: T;
-  setCurrent: (data: Partial<T>) => void;
-  setItems: (items: T[]) => void;
+    //...
+    pagination: Pagination;
+    items: T[];
+    current?: T;
+    setCurrent: (data: Partial<T>) => void;
+    setItems: (items: T[]) => void;
 }
 ```
 
@@ -110,11 +106,12 @@ The resource get from the API may need some processing or parsing before being s
 
 ```js
 interface ResourceState<T> {
-  //...
-  transform: (item: T) => T;
-  add: (input: T, addFirst?: boolean) => void; // can optionnal set if the item is add on top or at the bottom.
-  remove: (id: ID) => void;
-  filter: (predicate: (resource: T, index?: number) => boolean) => void;
+    //...
+    transform: (item: T) => T;
+    add: (input: T, addFirst?: boolean) => void; // can optionnal set if the item is add on top or at the bottom.
+    remove: (id: ID) => void;
+    filter: (predicate: (resource: T, index?: number) => boolean) => void;
+
 }
 ```
 
@@ -122,9 +119,9 @@ If we select an item and update it. The operation create new value for that item
 
 ```js
 interface ResourceState<T> {
-  //....
-  sync: (data: Partial<T>, predicate: (item: T) => boolean) => void;
-  syncWithId: (data: Partial<T>) => void;
+    //....
+    sync: (data: Partial<T>, predicate: (item: T) => boolean) => void;
+    syncWithId: (data: Partial<T>) => void;
 }
 ```
 
@@ -148,27 +145,23 @@ So all the generics operations support and error and loading mechanic using the 
   We write a helper for that:
 
 ```js
-loadingKey = (
-  operation: "create" | "update" | "destroy",
-  index: string,
-  id?: ID
-) => {
-  return id ? `${operation}_${index}_${id}` : `${operation}_${index}`;
+loadingKey = (operation: 'create' | 'update' | 'destroy', index: string, id?: ID) => {
+    return id ? `${operation}_${index}_${id}` : `${operation}_${index}`;
 };
 
 // create user loading state
-loading.status[loadingKey(operation, "users")];
+loading.status[loadingKey(operation,'users')]
 // update user loading state
-loading.status[loadingKey(operation, "users", userId)];
+loading.status[loadingKey(operation,'users', userId)]
 ```
 
 What if want to access the loading state for a given operation directly from the store to write less code. We can also consider the case where the loading operation is on the current item.
 
 ```js
 interface ResourceState<T> {
-  //...
-  loading: (operation: Operation, id?: ID) => boolean;
-  loadingCurrent: (operation: Operation) => boolean;
+    //...
+    loading: (operation: Operation, id?: ID) => boolean;
+    loadingCurrent: (operation: Operation) => boolean;
 }
 ```
 
@@ -176,29 +169,32 @@ interface ResourceState<T> {
 
 ```js
 export interface ResourceState<T> {
-  pagination: Pagination;
-  items: T[];
-  current?: T;
 
-  set: (inputs: Partial<T>) => void;
-  setItems: (inputs: Partial<T>[]) => void;
-  add: (input: T, firstPosition?: boolean) => void;
-  remove: (id: ID) => void;
-  filter: (predicate: (resource: T, index?: number) => boolean) => void;
+    pagination: Pagination;
+    items: T[];
+    current?: T;
 
-  sync: (data: Partial<T>, predicate: (item: T) => boolean) => void;
-  syncWithId: (data: Partial<T>) => void;
+    set: (inputs: Partial<T>) => void;
+    setItems: (inputs: Partial<T>[]) => void;
+    add: (input: T, firstPosition?: boolean) => void;
+    remove: (id: ID) => void;
+    filter: (predicate: (resource: T, index?: number) => boolean) => void;
 
-  update: (id: ID, data: Partial<T> | FormData, options?: any) => Promise<T>;
-  updateCurrent: (data: Partial<T>, options?: any) => Promise<T>;
+    sync: (data: Partial<T>, predicate: (item: T) => boolean) => void;
+    syncWithId: (data: Partial<T>) => void;
 
-  create: (data: Partial<T> | FormData, options?: any) => Promise<T>;
 
-  destroy: (id: ID, options?: any) => Promise<any>;
-  destroyCurrent: (options?: any) => Promise<any>;
+    update: (id: ID, data: Partial<T> | FormData, options?: any) => Promise<T>;
+    updateCurrent: (data: Partial<T>, options?: any) => Promise<T>;
 
-  loading: (operation: Operation, id?: ID) => boolean;
-  loadingCurrent: (operation: Operation) => boolean;
+    create: (data: Partial<T> | FormData, options?: any) => Promise<T>;
+
+    destroy: (id: ID, options?: any) => Promise<any>;
+    destroyCurrent: (options?: any) => Promise<any>;
+
+    loading: (operation: Operation, id?: ID) => boolean;
+    loadingCurrent: (operation: Operation) => boolean;
+
 }
 ```
 
@@ -232,19 +228,19 @@ we have being talking about options. Options are simple params that we pass to a
 Sometimes we need to store the resources by group. The UI may require handling many list of the same resource in parallel. In use case like kanban application. In the kanband board the card may represent the same resource but the different panel represent the differents cards lists. And theses should be handle at the same time. We can use a single list items by that we need a map. Still we select only one card at the time so the current item logic stay the same.`We introduce a concept of`GroupedResourceState` to represent the fact that resources are grouped.
 
 ```js
-interface GroupedResourceState {
-  items: Record<ID, T[]>;
-  pagination: Record<ID, Pagination>;
-  current?: T;
-  setCurrent: (inputs: Partial<T>) => void;
-  setItems: (inputs: Record<ID, T[]>) => void;
+interface GroupedResourceState{
+    items: Record<ID, T[]>;
+    pagination: Record<ID, Pagination>;
+    current?: T;
+    setCurrent: (inputs: Partial<T>) => void;
+    setItems: (inputs: Record<ID, T[]>) => void;
 }
 ```
 
 For each card I need to know the panel it belong to. It's good store directly in the card the information of column it belongs to. We maybe consider using `col_id`. Now we building a generic system. So we need a way to know automatically the group of an item. For that we use the `transform` operation.
 
 ```js
-transform = (item: T) => ({ ...item, groupId: item.col_id });
+transform = (item: T) => ({...item, groupId: item.col_id});
 ```
 
 IMPORTANT: `groupId` is convention name.
@@ -267,12 +263,9 @@ So in general all the operations for the `GroupedResourceState` are define the s
 
 ```js
 interface GroupedResourceState<T> {
-  //... unchanged operations.
-  setGroup: (groupId: ID, inputs: T[]) => void;
-  filter: (
-    groupId: ID,
-    predicate: (item: T, index?: number) => boolean
-  ) => void;
-  destroy: (groupId: ID, id: ID, options?: any) => Promise<any>;
+    //... unchanged operations.
+    setGroup: (groupId: ID, inputs: T[]) => void;
+    filter: (groupId: ID, predicate: (item: T, index?: number) => boolean) => void;
+    destroy: (groupId: ID, id: ID, options?: any) => Promise<any>;
 }
 ```
