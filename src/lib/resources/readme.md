@@ -229,6 +229,7 @@ Sometimes we need to store the resources by group. The UI may require handling m
 
 ```js
 interface GroupedResourceState{
+    groupId: "group_id"; // This is the default value. And should always be change.
     items: Record<ID, T[]>;
     pagination: Record<ID, Pagination>;
     current?: T;

@@ -1,11 +1,58 @@
 import { useErrors, useLoading } from '@/hooks/use-interact';
-import { createPrimitive, destroyPrimitive, loadingKey, updatePrimitive, withLoadingAndErrors } from './primitives';
-import { fakePagination, ID, Operation, Pagination, ResourceState } from './type';
+import { createQuery, execute, shape } from '@/lib/query';
+import { createPrimitive, destroyPrimitive, fakePagination, loadingKey, updatePrimitive, withLoadingAndErrors } from './primitives';
+import { ID, Operation, Pagination, ResourceState } from './type';
 
 export const initResource = <T>(index: string, set: any, get: any): ResourceState<T> => {
+    const runQuery = <T>(q: any, one: boolean = false): Promise<any> => {
+        return execute(q).then((res: any) => {
+            // If there is no data on the result.
+            if (!res.hasOwnProperty('data')) {
+                return Promise.resolve(one ? {} : []);
+            }
+
+            if (res.data == undefined) return Promise.resolve(one ? {} : []);
+
+            if (!res.data.hasOwnProperty(index)) return Promise.resolve(one ? {} : []);
+
+            if (res.data[index].length == 0) return Promise.resolve(one ? {} : []);
+
+            if (one) {
+                set({ current: res.data[index][0], pagination: fakePagination([]) });
+                return Promise.resolve(res.data[index][0]);
+            } else {
+                if (q[index].paginate) {
+                    if (res.data[index].hasOwnProperty('data')) {
+                        set(() => ({
+                            items: res.data[index].data as T[],
+                            pagination: res.data[index],
+                        }));
+                        return Promise.resolve(res.data[index].data);
+                    } else {
+                        return Promise.resolve([]);
+                    }
+                } else {
+                    set(() => ({
+                        items: res.data[index] as T[],
+                        pagination: fakePagination(res.data[index]),
+                    }));
+                    return Promise.resolve(res.data[index]);
+                }
+            }
+        });
+    };
+
     return {
         items: [],
         pagination: fakePagination([]) as Pagination,
+
+        fetch: (q?: any) => {
+            return runQuery(createQuery({ [index]: q ?? get().query }));
+        },
+
+        fetchOne: (q?: any) => {
+            return runQuery(createQuery({ [index]: shape(q ?? get().query).limit(1) }), true);
+        },
 
         transform: (item: T) => item,
 

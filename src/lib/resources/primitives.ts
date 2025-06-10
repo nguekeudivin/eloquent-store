@@ -1,6 +1,24 @@
 import { useErrors, useLoading } from '@/hooks/use-interact';
 import { getHttpClient } from '../http';
-import { ID } from './type';
+import { ID, Pagination } from './type';
+
+export const fakePagination = (data: any[]): Pagination => {
+    return {
+        current_page: 1,
+        data: data,
+        first_page_url: '',
+        from: 0,
+        last_page: 1,
+        last_page_url: '',
+        links: [],
+        next_page_url: '',
+        path: '',
+        per_page: data.length,
+        prev_page_url: null,
+        to: data.length,
+        total: data.length,
+    };
+};
 
 export function updatePrimitive<T>({ data, index, id, options }: { id: ID; index: string; data: Partial<T> | FormData; options?: any }): Promise<T> {
     if (data instanceof FormData) {

@@ -1,13 +1,39 @@
 import { useErrors, useLoading } from '@/hooks/use-interact';
+import { createQuery, execute, shape } from '@/lib/query';
 import { createPrimitive, destroyPrimitive, loadingKey, updatePrimitive, withLoadingAndErrors } from './primitives';
 import { GroupedResourceState, ID, Operation } from './type';
 
 export const initGroupedResource = <T>(index: string, set: any, get: any): GroupedResourceState<T> => {
+    const runQuery = <T>(q: any): Promise<any> => {
+        return execute(q).then((res: any) => {
+            if (!res.hasOwnProperty('data')) {
+                return Promise.resolve({});
+            }
+            if (res.data == undefined) return Promise.resolve({});
+            if (!res.data.hasOwnProperty(index)) return Promise.resolve({});
+            if (res.data[index].length == 0) return Promise.resolve({});
+
+            set(() => ({
+                items: res.data[index] as Record<ID, T[]>,
+            }));
+        });
+    };
     return {
+        groupId: 'group_id',
         pagination: {},
         items: {},
 
-        transform: (item: T) => item,
+        fetch: (q?: any) => {
+            // We make sure the request body is chainable to add the groupBy operator
+            let body: any = q ?? get().query;
+            if (!body._chain) {
+                body = shape(q);
+            }
+
+            return runQuery(createQuery({ [index]: body.groupBy(get().groupId) }));
+        },
+
+        transform: (item: T) => ({ ...item, groupId: (item as any)[get().groupId] }),
 
         setCurrent: (inputs: Partial<T>) =>
             set((state: any) => ({

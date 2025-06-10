@@ -14,24 +14,6 @@ export interface Pagination {
     total: number;
 }
 
-export const fakePagination = (data: any[]): Pagination => {
-    return {
-        current_page: 1,
-        data: data,
-        first_page_url: '',
-        from: 0,
-        last_page: 1,
-        last_page_url: '',
-        links: [],
-        next_page_url: '',
-        path: '',
-        per_page: data.length,
-        prev_page_url: null,
-        to: data.length,
-        total: data.length,
-    };
-};
-
 export type ID = string | number;
 export type Operation = 'create' | 'destroy' | 'update';
 
@@ -42,6 +24,7 @@ export interface OperationOptions {
 }
 
 interface BaseResourceState<T> {
+    query?: any;
     current?: T;
     // Local State Change
     transform: (item: T) => T;
@@ -50,6 +33,9 @@ interface BaseResourceState<T> {
     sync: (data: Partial<T>, predicate: (item: T) => boolean) => void;
     syncWithId: (data: Partial<T>) => void;
     // Request to Server.
+    // Exec a query that is provide.
+    // It receive a high level modelQuery.
+    fetch: (q?: any) => Promise<any>;
     create: (data: Partial<T> | FormData, options?: OperationOptions) => Promise<T>;
     update: (id: ID, data: Partial<T> | FormData, options?: OperationOptions) => Promise<T>;
     updateCurrent: (data: Partial<T>, options?: OperationOptions) => Promise<T>;
@@ -66,10 +52,13 @@ export interface ResourceState<T> extends BaseResourceState<T> {
     setItems: (inputs: Partial<T>[]) => void;
     remove: (index: number) => void;
     filter: (predicate: (resource: T, index?: number) => boolean) => void;
+    // Request to server
+    fetchOne: (q?: any) => Promise<any>;
     destroy: (id: ID, options?: OperationOptions) => Promise<any>;
 }
 
 export interface GroupedResourceState<T> extends BaseResourceState<T> {
+    groupId: string;
     items: Record<ID, T[]>;
     pagination: Record<ID, Pagination>;
     // Local State.
